@@ -1,7 +1,30 @@
-//simple bigsi implementation
-// methods:
-// 1. set; set specific bit at specific position in the vector
-// 2. get: get all accessions (bitvector positions) given a number of hashes
+//! Rust in-memory implementation of a BIGSI-like data structure (see https://www.nature.com/articles/s41587-018-0010-1).
+//! Comparable to a bloom filter; where a bloom filter tells if an element belongs to a single previously indexed set, a 
+//! BIGSI-like data structure efficiently tells if an elements is a member of multiple query sets. Parameters (in particular
+//! the index size and the number of hashes) should be chosen to assure an application permissable false probabilty.   
+//!   
+//! # Example
+//!
+//! ```
+//! use bigsi_rs;
+//!
+//!
+//! //create a new index of size 250,000, 10 accessions and 3 hash functions
+//! let mut new_filter = Bigsi::new(250000, 10, 3);
+//!
+//! //insert words in index for accessions 0, 3 and 7        
+//! new_filter.insert(0, "ATGT");
+//! new_filter.insert(3, "ATGT");
+//! new_filter.insert(7, "ATGT");
+//!
+//! //shrink uninformative elements in index
+//! new_filter.slim();
+//!
+//! assert_eq!(new_filter.get("ATGT").len(), 3 as usize);
+//! assert_eq!(new_filter.get("ATGC").len(), 0 as usize);
+//!
+//! ```
+
 extern crate bv;
 
 #[macro_use]
@@ -15,6 +38,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::Write;
 
+/// BIGSI-like data structure
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Bigsi {
     pub bigsi: Vec<BitVec>, // vector of bitvecs
@@ -24,6 +48,7 @@ pub struct Bigsi {
 
 //m: bigsi length, n: number of accessions, eta: num_hashes
 impl Bigsi {
+    /// Create a new index of size m, n aceesions and eta hashes.
     pub fn new(m: usize, n: u64, eta: u64) -> Bigsi {
         Bigsi {
             bigsi: vec![BitVec::new_fill(false, n); m],
@@ -31,6 +56,7 @@ impl Bigsi {
             accessions: n,
         }
     }
+    /// Create a new index with default parameters (size: 100, 2 hashes, 10 accessions).
     pub fn default() -> Bigsi {
         Bigsi {
             bigsi: vec![BitVec::new_fill(false, 10); 1000],
@@ -38,6 +64,7 @@ impl Bigsi {
             accessions: 10,
         }
     }
+    /// Insert new value for an accession.
     pub fn insert(&mut self, accession: u64, value: &str) {
         // Generate a bit index for each of the hash functions needed
         for i in 0..self.num_hashes {
@@ -47,6 +74,7 @@ impl Bigsi {
         }
     }
     //set all bit_vecs that have all false bits to BitVec::new()
+    /// Shrink uninformative elements in index.
     pub fn slim(&mut self) {
         let empty = BitVec::new_fill(false, self.accessions);
         let mut empties = Vec::new();
@@ -59,7 +87,7 @@ impl Bigsi {
             self.bigsi[i] = BitVec::new();
         }
     }
-    // given a value, return a vector with accessions containing the query value
+    /// Given a value, return a vector with accessions containing the query value
     pub fn get(&self, value: &str) -> Vec<usize> {
         let mut final_vec = BitVec::new_fill(true, self.accessions as u64);
         let mut hits = Vec::new();
@@ -79,7 +107,7 @@ impl Bigsi {
         }
         hits
     }
-    //return hits as bit vector
+    /// Given a value, return hits as bit vector
     pub fn get_bv(&self, value: &str) -> BitVec {
         let mut final_vec = BitVec::new_fill(true, self.accessions as u64);
         for i in 0..self.num_hashes {
@@ -93,7 +121,7 @@ impl Bigsi {
         }
         final_vec
     }
-    //merge two indices
+    ///concatenate two indices
     pub fn merge(&mut self, other_bigsi: &Bigsi) {
         //assert critical parameters are the same
         if (self.num_hashes != other_bigsi.num_hashes)
@@ -121,6 +149,7 @@ impl Bigsi {
             .collect();
         self.accessions = self.accessions + other_bigsi.accessions;
     }
+    /// Save index to file
     pub fn save(&self, file_name: &str) {
         let serialized: Vec<u8> = serialize(&self).unwrap();
         let mut writer = File::create(file_name).unwrap();
@@ -128,6 +157,7 @@ impl Bigsi {
             .write_all(&serialized)
             .expect("problems preparing serialized data for writing");
     }
+    /// Read index from file
     pub fn read(&mut self, path: &str) {
         let mut reader = BufReader::new(File::open(path).expect("Can't open index!"));
         let bigsi: Bigsi = deserialize_from(&mut reader).expect("can't deserialize");
