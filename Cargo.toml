@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Henk C. den Bakker <henkcdenbakker@gmail.com"]
 edition = "2018"
 license = "MIT"
+description = "A in-memory implementation of a BIGSI-like data structure"
+repository = "https://github.com/hcdenbakker/bigsi_rs"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
