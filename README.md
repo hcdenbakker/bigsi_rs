@@ -9,20 +9,19 @@ the index size and the number of hashes) should be chosen to assure a (down-stre
 # Example
 ```
 use bigsi_rs;
-//!
-//!
+
+
 //create a new index of size 250,000, 10 accessions and 3 hash functions
 let mut new_filter = bigsi_rs::Bigsi::new(250000, 10, 3);
-//!
+
 //insert words in index for accessions 0, 3 and 7        
 new_filter.insert(0, "ATGT");
 new_filter.insert(3, "ATGT");
 new_filter.insert(7, "ATGT");
-//!
+
 //shrink uninformative elements in index
 new_filter.slim();
-//!
+
 assert_eq!(new_filter.get("ATGT").len(), 3 as usize);
 assert_eq!(new_filter.get("ATGC").len(), 0 as usize);
-//!
 ```
