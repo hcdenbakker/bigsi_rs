@@ -11,7 +11,7 @@
 //!
 //!
 //! //create a new index of size 250,000, 10 accessions and 3 hash functions
-//! let mut new_filter = Bigsi::new(250000, 10, 3);
+//! let mut new_filter = bigsi_rs::Bigsi::new(250000, 10, 3);
 //!
 //! //insert words in index for accessions 0, 3 and 7        
 //! new_filter.insert(0, "ATGT");
