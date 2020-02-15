@@ -1,7 +1,8 @@
 //! Rust in-memory implementation of a BIGSI-like data structure (see https://www.nature.com/articles/s41587-018-0010-1).
 //! Comparable to a bloom filter; where a bloom filter tells if an element belongs to a single previously indexed set, a 
 //! BIGSI-like data structure efficiently tells if an elements is a member of multiple query sets. Parameters (in particular
-//! the index size and the number of hashes) should be chosen to assure an application permissable false probabilty.   
+//! the index size and the number of hashes) should be chosen to assure a (down-stream) application permissable false positive probabilty.
+//! My strategy is to base this on the largest set to be indexed and use the formula of Goel and Gupta 2010 (https://web.stanford.edu/~ashishg/papers/inverted.pdf) to calculate the false postive probability for this set, and hence the maximum false positive probability for the index.     
 //!   
 //! # Example
 //!
