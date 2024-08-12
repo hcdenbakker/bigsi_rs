@@ -34,7 +34,7 @@ use bincode::{deserialize_from, serialize};
 use bv::BitVec;
 use bv::BitsExt;
 use bv::*;
-use twox_hash;
+use xxh3;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::Write;
@@ -69,7 +69,7 @@ impl Bigsi {
     pub fn insert(&mut self, accession: u64, value: &str) {
         // Generate a bit index for each of the hash functions needed
         for i in 0..self.num_hashes {
-            let bit_index = (twox_hash::xxh3::hash64_with_seed(&value.as_bytes(), i as u64)
+            let bit_index = (xxh3::hash64_with_seed(&value.as_bytes(), i as u64)
                 % self.bigsi.len() as u64) as usize;
             self.bigsi[bit_index].set(accession, true);
         }
@@ -93,7 +93,7 @@ impl Bigsi {
         let mut final_vec = BitVec::new_fill(true, self.accessions as u64);
         let mut hits = Vec::new();
         for i in 0..self.num_hashes {
-            let bit_index = (twox_hash::xxh3::hash64_with_seed(&value.as_bytes(), i as u64)
+            let bit_index = (xxh3::hash64_with_seed(&value.as_bytes(), i as u64)
                 % (self.bigsi.len() as u64)) as usize;
             if self.bigsi[bit_index].is_empty() {
                 return hits;
@@ -112,7 +112,7 @@ impl Bigsi {
     pub fn get_bv(&self, value: &str) -> BitVec {
         let mut final_vec = BitVec::new_fill(true, self.accessions as u64);
         for i in 0..self.num_hashes {
-            let bit_index = (twox_hash::xxh3::hash64_with_seed(&value.as_bytes(), i as u64)
+            let bit_index = (xxh3::hash64_with_seed(&value.as_bytes(), i as u64)
                 % (self.bigsi.len() as u64)) as usize;
             if self.bigsi[bit_index].is_empty() {
                 return self.bigsi[bit_index].to_owned();
